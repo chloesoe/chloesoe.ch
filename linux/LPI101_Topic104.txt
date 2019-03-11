@@ -1,0 +1,151 @@
+Topic 104 - GNU- und Unix-Kommandos                          dhw,  05. Feb. 2015
+--------------------------------------------------------------------------------
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.1  Partitionen und Dateisysteme
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+fdisk -l /dev/sda       -> list
+
+cat /proc/partitions 
+mkfs.ext3
+    .msdos
+    .vfat
+
+mke2fs
+
+tune2fs -j /dev/sdc2        ext2 zu ext3
+
+mkswap
+swapon/swapoff
+
+swap-Datei erstellen
+ :~$ dd if=/dev/zero of=/swap.file bs=1024 counts=524288 
+ :~$ mkswap /swapfile
+ :~$ swapon /swapfile
+
+ :~$ cat /proc/swaps 
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.2 Integrität von Dateisystemen
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+fsck -a         all
+     -f         force
+     -t ext2    zum Dateisystem passendes Backend wird gestartet
+
+kein fsck beim nächsten restart
+ :~$ shutdown -hF now
+fsck beim nächsten restart erzwingen
+ :~$ shutdown -hf now
+
+Interaktiv Dateisystem untersuchen
+ :~$ debugfs /dev/sdb1
+   debugfs: lsdel               --> gelöschte inodes anzeigen
+
+dumpe2fs        detaillierte Infos zu ext-Dateisystem anzeigen
+
+mke2fs -c /dev/sdb1             --> Integritatsprüfung
+
+xfsprogs        Deb-Paket für XFS-Dateisystem
+
+df -i .         -i für inodes und . für aktuelle Partition
+
+du -c           total anzeigen der Ausgabe
+du -sch /home/*
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.3 Ein- und Aushängen von Dateisystemen
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+mount -v    verbose
+      -r    readonly
+      -w    writeonly
+      -o    option
+
+mount -o
+--------
+schreibbar remounten eines ro-devices
+ :~$ mount -v -o remount,rw /mnt/
+
+ :~$ mount -t smbfs -o username=dhw,password=123 //server/x /mnt 
+
+ :~$ mount -t nfs host:/path/x /mnt
+
+Optionen: user  -> von User einhängen möglich, nur gleicher User kann unmounten
+          users -> jeder User kann einhängen und anderer User kann aushängen
+
+/etc/mtab   eingehänge Partitionen
+cat /proc/mounts
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.4 Quotas
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+fstab -> usrquata,grpquata
+
+ :~$ touch aquota.user
+ :~$ touch aquota.group
+ :~$ chmod 600 aquota.*
+
+ :~$ quotacheck -augv
+ :~$ quotacheck -vu /fs/
+    -u  user
+    -g  group
+    -a  alle Dateisysteme
+
+ :~$ quotaon
+ :~$ quotaoff
+
+ :~$ edquota -f /mydrive -u myuser
+    -> soft/hard 
+
+ :~$ quota -u myuser        -> Quota anzeigen
+ 
+ :~$ repquota               -> Bericht
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.5  Dateizugriffsrechte
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ :~$ chmod u=rwx,g=rx,o=rx my.file          -> entspricht 755
+
+stickybit: nur Besitzer der Datei/Ordner kann löschen
+ :~$ find / -perm -u+s
+
+chgrp           change group
+umask 0027      no others with read
+
+lsattr          ext-FS Attribute anzeigen
+chattr          change Attribute
+--> s = secure delete
+:w
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.6 Links
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+stat my.file        ermitteln wievile hardlinks
+
+Hardlinks:
+ - nicht auf Folder möglich
+ - nicht Partitionsübergreifend
+ --> ln ohne option für Hardlinks
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+104.7 Systemdateien finden
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ :~$ find /my/dir -amin n           n Minuten letzter Zugriff auf Datei
+ :~$ find /my/dir -perm +644        nach 644 Berechtigung suchen
+ :~$ find /my/dir -size +500M       Nach Dateien mit mehr als 500MB suchen
+
+locate ist schneller als find, verwendet DB
+-> updatedb
+    -> /etc/updatedb.conf
+    -> PRUNEPATHS: Direcotries die nicht durchsucht werden sollen
+
+
+
+
+

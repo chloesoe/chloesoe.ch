@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta name="author" content="Daniel Hauswirth">
+    <meta charset="UTF-8" />
+    <meta name="description" content="lpic notes">
+    <meta name="dcterms.subject" content="Some Linux notes">
+    <meta name="robots" content="all,follow" /> 
+
+    <link rel="stylesheet" href="../style.css" type="text/css" title="Standard"> 
+
+
+    <title>Some Linux notes</title>
+  </head>
+  <body>
+    <div id="kopf">
+      &nbsp;
+    </div>
+    <div id="menue">
+      <a href="../">chloesoe.ch</a>
+      <ul>
+        <li>
+          Linux
+          <!--
+            <div>
+            <ul>
+            <li>PSQL Links</li>
+            </ul>
+            </div>
+          -->
+        </li>
+      </ul>
+    </div>
+
+    <div id="mitte">
+      <div id="inhalt">
+        <h1>LPIC-1</h1>
+        <p>during studying for LPIC-1 I made some notes; unfortunately in German, so it is quite stupid to write this description in English</p>
+        <ul>
+          <li>Chapter 101 <a href="LPI101_Topic101.txt">LPI101_Topic101.txt</a></li>
+          <li>Chapter 102 <a href="LPI101_Topic102.txt">LPI101_Topic102.txt</a></li>
+          <li>Chapter 103 <a href="LPI101_Topic103.txt">LPI101_Topic103.txt</a></li>
+          <li>Chapter 104 <a href="LPI101_Topic104.txt">LPI101_Topic104.txt</a></li>
+        </ul>
+        <h1>Linux commands</h1>
+        <p> <samp>dig</samp> cheatsheet <a href="https://neverendingsecurity.wordpress.com/2015/04/13/dig-commands-cheatsheet/">neverendingsecurity.wordpress.com</a>
+        </p>
+        <h2>LPIC Topic 200: Capacity Planning</h2>
+        <p><samp>sar</samp> from the package sysstat shows the processor activity, this gives five measurements every three seconds:
+        <code>sar 3 5</code>
+        </p>
+        <p><samp>sar</samp> also could be used to measure network interfaces and I/O transfer rates, first command measure one time for five seconds:
+        <code>sar -n DEV 5 1</code>
+        </p>
+        <p>this command measures the I/O rates every 10 seconds three times:
+        <code>sar -b 10 3</code>
+        </p>
+        <p>to collect data over a longer period, we have to set <samp>ENABLED=&quot;true&quot;</samp> in <em>/etc/default/sysstat</em> and start the service.
+        After ten minutes we can see the collected data with:
+        <code>sar -A</code>
+        </p>
+        <p><samp>iostat</samp>from <em>sysstat</em> is similar to <samp>sar</samp> when running without attributes
+        <ul>
+          <li>shows CPU usage
+            <code>iostat -c</code>
+          </li>
+          <li>shows usage of devices 
+            <code>iostat -d</code>
+          </li>
+          <li>human readable
+            <code>iostat -h</code>
+          </li>
+          <li>extended statistics
+            <code>iostat -x</code>
+          </li>
+        </ul>
+        <p><samp>iotop</samp> show I/O like command <samp>top</samp>. To show the current I/O processes do this:</p>
+        <code>iotop -o</code>
+        <p>other commands
+        <code>vmstat</code>
+        <code>netstat</code>
+        <code>ss</code>
+        <code>iptraf</code>
+        </p>
+        <p><samp>ps</samp>command:</p>
+        <ul>
+          <li><samp>a</samp> &ndash; show all processes </li>
+          <li><samp>u</samp> &ndash; start time, path, user</li>
+          <li><samp>x</samp> &ndash; also precesses not bound to a terminal (e.g. init or cron)</li>
+          <li><samp>-C</samp> &ndash; all instances of a process </li>
+          <li><samp>-U</samp> &ndash; user</li>
+        </ul>
+        <p>instead of using <samp>ps aux | grep tomcat</samp> we could search for java processes with:
+        <code> ps u -C java</code>
+        <code> ps -fC java</code>
+        <code> ps -fC java,apache2</code>
+        </p>
+        <p>other commands
+        <code>pstree</code>
+        <code>top</code>
+        more modern than top with color an scrolling:
+        <code>htop</code>
+        </p>
+        <p>
+        show load an uptime with:
+        <code>uptime</code>
+        <code>w</code>
+        </p>
+        <p> show what file is open at an external drive
+        <code>lsof /media/mydrive</code>
+        </p>
+        <h2>LPIC Topic 201: Linux Kernel</h2>
+        <p> identify current kernel version:
+        <code>uname -r</code>
+        </p>
+        <p>compile commands
+        <code>make config</code>
+        <code>make oldconfig </code>
+        <code>make menuconfig </code>
+        <code>make dep </code>
+        <code>make clean </code>
+        <code>make bzImage </code>
+        <code>make modules </code>
+        <code>make modules_install </code>
+        </p>
+        <p> show state of the modules of the running kernel.
+        <code>lsmod</code>
+        basically shows the content of <em>/proc/modules</em> 
+        </p>
+        <p> inspect the modules of a kernel
+        <code> modinfo</code>
+        options of modinfo:</p>
+        <ul>
+          <li><samp>-a </samp> &ndash; shows the author</li>
+          <li><samp>-d </samp> &ndash; shows the description</li>
+          <li><samp>-l </samp> &ndash; shows the license</li>
+          <li><samp>-p </samp> &ndash; shows the parameters</li>
+          <li><samp>-n </samp> &ndash; shows the file name of the module</li>
+        </ul>
+        <p> other mod commands</p>
+        <ul>
+          <li><samp>insmod </samp> &ndash; insert a module in a running kernel</li>
+          <li><samp>rmmod </samp> &ndash; removes a module </li>
+          <li><samp>modprobe </samp> &ndash; optimized command from <samp>insmod</samp> and <samp>rmmod</samp>. 
+            <samp>modprobe</samp> resolves dependencies automatically</li>
+          <li><samp>depmode </samp> &ndash; creates a new <em>modules.dep</em> file where the relations between the modules are stored </li>
+        </ul> 
+        <p> At runtime the kernel stores its information in the <em>/proc</em> file system under <em>/proc/sys/kernel/</em>
+        <code>cd /proc/sys/kernel/</code>
+        <code>cat osrelease</code>
+        <code>cat ostype</code>
+        <code>cat hostname</code>
+        <code>cat domainname</code>
+        <code>cat modprobe</code>
+        </p>
+        <p> show which files are open in a mounted drive
+        <code>lsof /media/disk/</code>
+        </p>
+        <p> udev manges /dev. Configuration at <em>/dev/udev/</em>.<br />
+        To monitor udev:
+        <code>udevadm monitor</code>
+        </p>
+        <p> lot of information about a process:
+        <code>cat /proc/9842/environ  | tr "\000" "\n"</code>
+        the <em>tr</em> is needed here, to have a line break after every parameter
+        </p>
+        <h2>LPIC Topic 202: System Startup</h2>
+        <p> show differnces in systemd config
+        <code>systemd-delta</code>
+        </p>
+        <p> create backup of the MBR
+        <code>dd if=/dev/sda of=mbr.backup ibs=512 count=1</code>
+        </p>
+        <p> update grub after installing new kernerl
+        <code>update-grub2</code>
+        </p>
+        <p> check file system </p>
+        <code>fsck -t ext4 -V /dev/sdb1</code>
+        <ul>
+          <li><samp>-a</samp> &ndash; automatically repair errors</li>
+          <li><samp>-y</samp> &ndash; automatically answer all questions with &quot;yes&quot;</li>
+          <li><samp>-A</samp> &ndash; automatically check all file systems listed in <em>/etc/fstab</em></li>
+        </ul>
+
+        <h2>LPIC Topic 203: Filesystem and Devices</h2>
+        <p> parameters of the <em>mount</em> command </p>
+        <ul>
+          <li><samp>-a</samp> &ndash; mount all in fstab</li>
+          <li><samp>-r</samp> &ndash; read only</li>
+          <li><samp>-w</samp> &ndash; writeable</li>
+          <li><samp>-t</samp> &ndash; file system type</li>
+          <li><samp>-v</samp> &ndash; verbose</li>
+          <li><samp>-o</samp> &ndash; mount options</li>
+        </ul>
+        <p>remount
+        <code> mount -v -o remount,rw /path</code>
+        </p>
+        <p>NFS mount
+        <code> mount -t nfs pcname:/path /mnt </code>
+        </p>
+        <p>SMB mount
+        <code> mount -t smbfs //pcname/share /mnt </code>
+        </p>
+        <p> Content of <em>/etc/fstab</em>: <p>
+        <table style="margin-top:-1em; margin-bottom:0">
+          <tr style="text-align:left">
+            <th>1 file system</th>
+            <th>2 mount point</th>
+            <th>3 type</th>
+            <th>4 options</th>
+            <th>5 dump</th>
+            <th>6 pass</th>
+          </tr>
+          <tr>
+            <td>UUID=9ae73f06-5ee6-45f5-8f55-c4837bc7ca2a</td> 
+            <td>/</td>               
+            <td>ext4</td>    
+            <td>errors=remount-ro</td> 
+            <td>0</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>UUID=d583c4be-8d35-4bb5-bc81-cda80e1606b4</td> 
+            <td>none</td>            
+            <td>swap</td>    
+            <td>sw</td>              
+            <td>0</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td>UUID=58236382-9d8f-40a5-ba65-0bc431df69aa</td> 
+            <td>/home</td>                
+            <td>ext4</td>       
+            <td>acl,user_xattr</td>        
+            <td>1</td>
+            <td>2</td>
+          </tr>
+        </table>
+        <p style="margin-top:0">column 5 defines, if the file system is saved by <samp>dump</samp> <br />
+        column 6 defines, if and when a file system is checked by <samp>fsck</samp>:
+        </p>
+        <ul>
+          <li>0 &ndash; not checked</li>
+          <li>1 &ndash; checked with priority</li>
+          <li>2 &ndash; checked after file systems with &quot;1&quot; are checked</li>
+        </ul>
+        <p>find UUID of your partitions
+        <code>blkid</code>
+        </p>
+        <p>no <samp>fsck</samp> when start next time
+        <code> shutdown -hf now</code>
+        </p>
+        <p>force <samp>fsck</samp> when start next time
+        <code> shutdown -hF now</code>
+        </p>
+
+        <h2>LPIC Topic 204: Advanced Storage Device Administration</h2>
+        <p>LVM</p>
+        <ul>
+          <li>fdisk with LVM (8e)<br />
+            <div style="font-size:20pt">&#8615;</div></li>
+          <li><samp>pvcreate</samp><br />
+            <div style="font-size:20pt">&#8615;</li>
+          <li><samp>vgcreate</samp><br />
+            <div style="font-size:20pt">&#8615;</li>
+          <li><samp>lvcreate</samp></li>
+        </ul>
+
+        <h2>LPIC Topic 205: Network Configuration</h2>
+        <p> <samp>ip</samp> command cheatsheet <a href="https://access.redhat.com/sites/default/files/attachments/rh_ip_command_cheatsheet_1214_jcs_print.pdf">acces.redhat.com (pdf)</a>
+        </p>
+        <p>
+        <code>ifconfig eth1 192.168.1.111 netmask 255.255.255.0</code>
+        </p>
+        <p>
+        <code>route add default gw 192.168.1.1 </code> <br /> 
+        <code>route add -net 192.168.191.0/24 gw 192.168.190.1</code>
+        </p>
+        <p>
+        <code>route -A inet6</code>
+        </p>
+        <p>Delete arp entry: <br />
+        <code>arp -d 192.168.1.1</code>
+        </p>
+        <p><samp>ip</samp> command: <br />
+        <code>ip route show </code> &nbsp;&nbsp;&nbsp;&#35; same as <samp>route -n</samp> command <br />
+        <code>ip neighbour show</code> &nbsp;&nbsp;&nbsp;&#35; same as <samp>arp</samp> command <br />
+        <code>ip addr show eth0 </code> &nbsp;&nbsp;&nbsp;&#35; same as <samp>ifconfig</samp> command <br />
+        <code>ip tunnel show </code> &nbsp;&nbsp;&nbsp;&#35; capsulated ipv6 packages in ipv4 packages <br />
+        <code>ip monitor</code> &nbsp;&nbsp;&nbsp;&#35; live monitoring of arp table <br />
+        </p>
+        <p>wifi commands 
+        <code>iwconfig wlan0</code> 
+        <code>iwconfig wlan0 txpower 30mW</code>
+        <code>iwlist wlan0 frequency</code>
+        <code> iwlist --help <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;Usage: iwlist [interface] scanning [essid NNN] [last] <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;[interface] frequency <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;[interface] channel <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;[interface] bitrate <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;[interface] rate <br />
+          &nbsp;&nbsp;&nbsp;&nbsp;...
+        </code>
+        <code>iw dev wlan0 link</code> &#35; same as <code> iwconfig wlan0</code>
+        </p>
+        <p>some network commands: </p>
+        <ul>
+          <li>add additional IP address to eth0a:
+            <code>ifconfig eth0:1 172.16.111.111</code> 
+          </li>
+          <li>add route for the net just added to the gateway of that network 
+            <code>route add -net 172.16.111.0/16 gw 172.16.111.1</code> 
+          </li>
+          <li>route with IPv6
+            <code>route add -A inet6 2001:6f8:1cfe:1::/64 gw 2001:6f8:1cfe:0::4</code> 
+            <code>route -A inet6 </code>
+          </li>
+          <li> netstat
+            <ul>
+              <li> <samp>netstat -tulpen</samp> &ndash; shows all important information </li>
+              <li> <samp>netstat -r </samp> &ndash; shows routing table as <samp> route -n</samp> </li>
+              <li> <samp>netstat -i </samp> &ndash; shows list of interfaces </li>
+              <li> <samp>-t </samp>&ndash; tcp sockets </li>
+              <li> <samp>-u </samp>&ndash; udp sockets </li>
+              <li> <samp>-l </samp>&ndash; socketes in LISTEN state </li>
+              <li> <samp>-p </samp>&ndash; Show the PID and name of the program to which each socket belongs. </li>
+              <li> <samp>-c </samp>&ndash; continuous display of the connections, cancelling with CTRL+C </li>
+              <li> <samp>-n </samp>&ndash; numerical </li>
+              <li> <samp>-e </samp>&ndash; Display additional information.  Use this option twice for maximum detail. </li>
+              <li> <samp>-a </samp>&ndash; shows all connections </li>
+              <li> <samp>-c </samp>&ndash; continuous display of the connections, cancelling with CTRL+C </li>
+            </ul>
+          </li>
+          <li> <samp>ss</samp> newer than <samp>netstat</samp> with similar syntax, e.g.
+            <code>ss -tulpn</code>
+          </li> 
+          <li><samp>tcpdump </samp> dump traffic on a network
+            <ul>
+              <li><samp>-i eth0</samp> interface eth0 </li>
+              <li><samp>-n </samp> numerical</li>
+              <li><samp>-w /tmp/dump.file</samp> write to file</li>
+              <li><samp>-F </samp> read from a file, not an interface</li>
+              <li><samp>tcpdump tcp port 80 -i eth0 </samp> filter the dump on port 80</li>
+            </ul>
+          </li>
+          <li>show open connections with <samp>lsof</samp>
+            <code>lsof -i -n -P</code>
+          </li> 
+          <li>netcat
+            <ul>
+              <li><samp>netcat -l -p 4444</samp> &ndash; listen on port 4444</li>
+              <li><samp>netcat 192.168.1.199 4444</samp> &ndash; connect to port 4444</li>
+            </ul>
+          </li>
+          <li> add an ip address to an interface without an alias. This address will not be showed in <samp>ifconfig</samp> only in <samp>ip addr show </samp>
+            <code>ip address add 172.16.1.123/24 dev eth0</code>
+            <code>ip address add 2a01:198:5dd::47/64 dev eth0</code>
+          </li>
+          <li> add a route wite <samp> ip </samp> command
+            <code>ip route add 172.16.1.0/24 via 192.168.1.1 </code>
+            <code>ip address add 2001:6f8:1cfe:4f44::/64 via 2001:6f8:1cfe::4 </code>
+          </li>
+          <li> Port scan with <samp>nmap</samp>
+            <code>nmap server.tld.com </code>
+          </li>
+          <li> Port scan with <samp>nmap</samp>, avoiding ping if this is disabled
+            <code>nmap server.tld.com -P0</code>
+          </li>
+          <li> scan whole network
+            <code>nmap -P0 192.168.0.0/24</code>
+          </li>
+          <li> scan whole network on port 80 and 443
+            <code>nmap -P0 -p 80,443 192.168.0.0/24</code>
+          </li>
+          <li>hostname
+            <ul>
+              <li><samp>hostname</samp> &ndash; shows or changes the host name</li>
+              <li><samp>domainname</samp> &ndash; shows or changes the NIS/YP domain name of a host </li>
+              <li><samp>dnsdomianname</samp> &ndash; shows the system's DNS domain name of a host </li>
+            </ul>
+          </li>
+          <li>live traceroute
+            <code>mtr 192.168.0.1 </code>
+          </li>
+          <li>With <em>/etc/hosts.allow</em> and <em>/etc/hosts.deny</em> we can allow/deny a connection to a machine
+            <ul>
+              <li> <samp> ALL : ALL</samp> in <em>/etc/hosts.deny</em>  to deny every connection, if not an allow in the allow file
+                <li> <samp> ALL : LOCAL</samp> in <em>/etc/hosts.allow</em>  to allow every connection in the same domain
+            </ul>
+                </li>
+        </ul>
+        <h2>LPIC Topic 206: System Maintenance</h2>
+        <ul>
+          <li>install headers with current kernel
+            <code>apt-get install linux-headers-$(uname -r)</code>
+          </li>
+          <li>extract a tar.gz tarball
+            <code>tar xvzf mytarball.tar.gz </code>
+            <code>tar xvzf mytarball.tar.gz --directory=/opt/</code>
+          </li>
+          <li>create a tar.gz tarball
+            <code>tar cvzf /path/mytarball.tar.gz /myfolder/ </code>
+          </li>
+          <li>options for tar
+            <code><samp>-x</samp> &ndash; extract </code>
+            <code><samp>-c</samp> &ndash; create </code>
+            <code><samp>-z</samp> &ndash; gzip/gunzip </code>
+            <code><samp>-j</samp> &ndash; bzip2/bunzip2 </code>
+            <code><samp>-J</samp> &ndash; xz/unxz </code>
+            <code><samp>-v</samp> &ndash; verbose </code>
+            <code><samp>-t</samp> &ndash; table; list all files of the archive, without extracting </code>
+            <code><samp>-f</samp> &ndash; file: has to be the last one before the file </code>
+            <code><samp>tar cvf /dev/st0 /home</samp> &ndash; tape archive of /home </code>
+            <code><samp>tar xvf /dev/st0 /home/daniel/important.doc</samp> &ndash; tape archive restore important.doc </code>
+          </li>
+          <li>create gzip without deleting original file: a redirector to the new file is needed, otherwise the output will be printed to the terminal
+            <code>gzip -c bachelorthesis.doc > bachelorthesis.doc.gz </code>
+          </li>
+          <li>show content of a gz archive
+            <code>gzip -l bachelorthesis.doc.gz </code>
+          </li>
+          <li>gunzip an archive, zcat is the same as <samp>gunzip -c</samp>
+            <code>gunzip bachelorthesis.doc.gz </code>
+            <code>gzip -d bachelorthesis.doc.gz </code>
+            <code>zcat bachelorthesis.doc.gz </code>
+          </li>
+          <li> bzip2 commands
+            <code>bzip2 file </code>
+            <code>bzip2 -c file > file.bz2 </code>
+            <code>bunzip2 file.bz2 </code>
+            <code>bzip2 -d file.bz2 </code>
+            <code>bzcat file.bz2 </code>
+          </li>
+          <li> xz commands
+            <code>xz file </code>
+            <code>xz -c file > file.bz2 </code>
+            <code>unxz file.bz2 </code>
+            <code>xz -d file.bz2 </code>
+            <code>xzcat file.bz2 </code>
+          </li>
+          <li> tape devices
+            <ul>
+              <li> first rewinding SCSI tape
+                <code>/dev/st0 </code>
+              </li>
+              <li> first non rewinding SCSI tape
+                <code>/dev/nst0 </code>
+              </li>
+              <li> first rewinding floppy tape
+                <code>/dev/ft0 </code>
+              </li>
+              <li> first non rewinding floppy tape
+                <code>/dev/nft0 </code>
+              </li>
+            </ul>
+          </li>
+          <li> <samp>dd</samp> copy between two disks
+            <code>dd if=/dev/sda of=/dev/sdb </code>
+          </li>
+          <li> save mbr with dd
+            <code>dd if=/dev/sda of=mbr.backup ibs=512 count=1 </code>
+          </li>
+          <li> systemd shutdown command
+            <code>systemctl poweroff</code>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div id="fuss">
+      chloesoe, 26. Apr 2017 <a href="info@chloesoe.ch">Kontakt</a>
+
+    </div>
+
+  </body>
+</html>
+

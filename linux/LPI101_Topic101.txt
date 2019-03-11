@@ -1,0 +1,148 @@
+Topic 101 - Systemarchitektur				dhw, 26. Nov. 2013
+-----------------------------                       update,  28. Jan. 2015
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+101.1 Hardware-Einstellungen ermitteln
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Kernel-Version rausfinden
+ :~# uname -r
+Historie alter Kernel
+ :~# ls /lib/modules/
+ :~# ls /usr/src/linux-*<version>/   <-- Nur Quellcode des Kernel
+
+Status der Module (lsmod)
+     :~# lsmod
+ auch weniger übersichtlich möglich mit:
+     :~# cat /proc/modules
+ einzelne Module anzeigen 
+     :~# modinfo
+        -a  Autor
+        -d  description
+        -l  Lizenz
+        -p  Übergabeparameter
+        -n  Dateinamen
+
+Modul einfügen (hier bsp. bluetooth)
+    :~# insmod /lib/modules/3.11.0-13-generic/kernel/net/bluetooth/bluetooth.ko
+Modul entfernen (hier bsp. bluetooth)
+    :~# rmmod bluetooth    <-- ohne Pfadangabe möglich
+
+modprobe -> insmod und rmmod in einem
+- löst Abhängigkeiten auf und behebt Probleme daraus
+   # find /lib/modules/`uname -r` -name '*.ko'
+    -l      list
+    -at xyz all, type xyz
+
+depmode erstellt die Datei /lib/modules/3.11.0-13-generic/modules.dep
+ (für Abhängigkeiten anzeigen; Module mit : getrennt stehen in Zusammenhang)
+    -n  Trockenlauf nach stdout
+    -A  Schnelldurchlauf, nur wenn Module vorhanden, die neuer
+
+/dev
+----
+/dev/hd*    Geräte am IDE-Bus
+/dev/sd*    Geräte am SCSI-Bus (auch SATA, Ubuntu u.ä. auch IDE)
+
+hda         Primary Master
+hdb         Primary Slave
+hdc         Secondary Master
+hdd         Secondary Slave
+
+/proc
+-----
+/proc/interrupts
+/proc/ioports
+/proc/dma
+/proc/pci
+
+ausgabe der PCI-Geräte (drei verbosestufen)
+ :~# lspci -vvv
+
+USB
+ USB 1.0    OHCI (Open Host Controller Interface)
+ USB 1.2    UHCI (Universal Host Controller Interface)
+ USB 2.0    EHCI (Enhanced Host Controller Interface)
+
+/proc/bus/usb
+
+managing USB (beides nicht auf Debian verfügbar)
+ - usbmgr
+ - hotplug
+
+Treiber
+ hid.o          Human Interface Device
+ usb-storage.o  Festplatten usw
+
+lsusb
+lsusb -t                    --> tree view
+lsusb - d <deviceid> -v     --> bestimmtes USB-Device genau anzeigen
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+101.2 Das System starten
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Partitionstabelle ist im MBR
+bis zu 4 Partitionen möglich (primäre); sonst eine Erweiterte und 3 primäre
+MBR = 512 Byte
+
+parameter für Kernel bei Startup --> /etc/modules.conf oder modprobe.conf
+
+Startup-conf zur Laufzeit ändern: Bei Grub "E" drücken
+bsp. bei root-pw vergessen
+    init=/bin/bash hinzufügen bei line mit linux start
+        linux /boot/vmlinuz-version root=UUID=hex ro quite init=/bin/bash
+    mount -o remount, rw /
+    passwd root
+    passwd root (zweimal setzen)
+    sync
+    reboot
+
+startup log in dmesg und messages.log
+
+    
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+101.3 Runlevel wechseln und das System anhalten oder neu starten
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/etc/init.d/xxx reload --> SIGHUP
+ SIGHUP veranlasst einen Prozess die konfig neu zu lesen
+
+$0 --> Variable die weiss, von wo das SH ausgeführt wurde
+    --> bsp. im Skript test.sh, würde test.sh bei $0 ausgegeben werden
+
+ändern des Runlevel
+ :~# init
+ :~# telinit
+
+/etc/inittab
+ - default Runlevel definiert
+ - Konsolenanzahl definiert (tty1-7)
+    - 7 = Grafische Oberfläche
+ - definition von ctrl+alt+del
+
+Neueinlesen von initab
+ :~# telinit q
+
+Runlevel ausgegeben
+ :~# runlevel
+--> gibt alten und neuen runlevel ausgabe
+
+Runlevel ändern
+ :~# init 3
+ :~# telinit 3
+
+FSCK beim reboot neustart unterdrücken
+ :~# shutdown -f -r now
+FSCK beim reboot neustart erzwingen
+ :~# shutdown -F -r now
+
+Upstart
+ - in /etc/init und /etc/event.d
+ - /etc/inittab nicht verwendet
+ - keine Verknüpfungen für Start oder Ende des Dienstes
+    - Info zu Runlevel im Skript selbst enthalten
+
+Systemd
+ - Admin-Tools
+    - systemctl
+

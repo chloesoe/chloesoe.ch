@@ -1,0 +1,4 @@
+psql -U screenfood -c "select c_client_name, c_name, c_description, c_title from t_client_notification left join t_client on t_client.c_client_id=t_client_notification.c_client_id where c_title like '%LICENSE%';"
+
+
+screenfood=> select t_client_notification.*, c_client_name, c_name, c_description, c_title from t_client_notification left join t_client on t_client.c_client_id=t_client_notificatio                                                                                                                                                                                  n.c_client_id where c_title like '%LICENSE%';

@@ -1,0 +1,218 @@
+Topic 103 - GNU- und Unix-Kommandos                          dhw,  04. Feb. 2015
+--------------------------------------------------------------------------------
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.1  Kommandozeile
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Unterscheidung:
+ - Shellvariable
+    - nur pro Shell gültig
+ - Umgebungsvariable
+    - Alle Shells
+    - wird vererbt
+
+Profil-Konfigurationsdateien
+ /etc/profile
+ /etc/bashrc
+ ~/.bashrc/
+ ~/.bash_profile  ^=  ~/.bash_login
+
+ ~/.profile wird nur eingelesen wenn keine ~/.bash_profile vorhanden
+
+Alle Shellvariablen anzeigen
+ :~$ set
+Alle Umgebungsvariablen anzeigen
+ :~$ env
+
+Shellvariable setzen
+ :~$ myname=Walti
+für Vererbung
+ :~$ export myname=Walti
+    -> Vererbung nur in Subshell möglich, nicht in Parent-Shell
+Variable löschen
+ :~$ unset myname
+
+Beliebte Umgebungsvariablen
+ $HISTSIZE      grösse Historie
+ $PS1           prompt der Shell (dhw@dhwlap11:~$)
+ $?             Errorlevel des letzten Bf
+ $1             erstes Argument bei Shell-Scripts 
+
+History
+ !!             letzter Befehl
+ history tail   letzte Befehle anschauen
+ !n             n=Nummer gmäss history; Befehl wird ausgeführt
+ !-n            n-ter Befehl zuvor wird ausgeführt
+ !<ZEICHENKE>   letzter Befehl, der so beginnt wird ausgeführt
+ !?<ZEICHENKE>  letzter Befehl, der <ZEICHENKE> enthält wird ausgeführt
+ x ; y          zwei Befehle nacheinander ausfüheren (x dann y)
+ x || y         ODER: y wird nur ausgeführt wenn x fehlschlägt
+ x && y         UND: y wird nur ausgeführt wenn x erfolgreich
+
+
+which zeigt welches Programm ausgeführt wird
+ :~$ which vim  -> /usr/bin/vim 
+
+uname -r        Kernelversion anzeigen
+manpath         wo sind man pages abelegt?
+manpath -c      wo sind tmp der entpackten mans?
+man <n> cmd     entsprechende man-Sektion öffnenn
+    -> bsp :~$ man 5 crontab
+whatis          zeigt alle manpage Sektionen
+apropos         ähnlich whatis; durchsucht auch DESC-Sektion der manpages
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.2  Textströme mit Filtern verarbeiten
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+cat -A          cat mit nicht druckbaren Zeichen
+tac             umgekehrt zu cat
+expand          TAB durch Space ersetzen
+unexpand -t 4   4 Zeichen durch TAB ersetzen
+fmt -w 80       txt Formatieren zu einer Breite von 80 Zeichen
+nl x.txt        x.txt mit Zeilnnummern ausgeben
+pr              aufbereiten für Druck
+pr -h           header für Druck angeben, anstatt Page1-x
+
+wc              word count: print newline, word, and byte counts
+    -c          Anzahl Bytes
+    -w          Anzahl Wörter
+    -l          Anzahl Zeilen
+    -m          Anzahl Zeichen
+
+hexpdump        file in hex ausgeben
+od              wie hexpdump in oktal
+
+sort
+    -n          nummerisch
+    -r          reverse
+    -o          output file
+
+uniq            Duplikate entfernen
+
+split           Grosse Dateien splitten
+    :~$ split -b 11m catalina.out cata_                   #gibt cata_XX
+    :~$ cat cata_* > catalina.out.restored                #wieder zusammenfügen
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.3  Grundlegende Dateiverwaltung
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ls -s           Blockgrösse
+ls -i           inode
+
+cp -i           --interactive; fragt vor überschreiben
+cp -p           Eigentümer beibehalten
+
+mv -u           --update; nur wenn gleiche Datei die älter ist existiert
+mv -i           --interactive; fragt vor überschreiben
+
+mkdir -m 700 x  neus dir erstellen mit 700 Berechtigung
+mkdir -p        erstellt Parent-Folder falls nicht vorhanden
+rmdir           löscht dir nur wenn leer
+rmdir -p        löschte Parent wenn nach Löschung des aktuellen Folders Parent
+                ebenfalls leer sein sollt
+
+touch           eigentlich Timestamp einer Datei ändern
+touch -t YYYYMMDDhhmm.ss
+
+gzip -c         Original beibehalten
+
+cpio -i         Copy-in-Modus: Kopiert Daten aus Archiv in das Dateisystem
+cpio -o         Copy-out-Modus: Kopiert Daten aus dem Dateisystem in das Archiv 
+cpio -p         Pass-Through: Kopiert in ein Verzeichnis
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.4  Ströme, Pipes und Umleitungen
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+stdin   ->  0
+stdout  ->  1
+stderr  ->  2
+
+ :~$ ./myscript.sh 1> my.log 2>error.log
+ :~$ ./myscript.sh 1> my.log 2>&1                   #auch Error in my.log loggen
+
+tee             Gleichzeitig in Datei und stout
+
+xargs           Mehrzeilige Ergebnisse an Programm übergeben
+ :~$ find . -maxdepth 1 -type f -name ".*" | xargs grep HISTSIZE
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.5  Prozesse
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+init hat PID 1 und nicht PID 0
+
+ps -C java      alle java-Prozesse anzeigen
+ps -FC java     entspricht ungefähr "ps aux | grep java"
+
+top ==> "n"     n Anzahl linien in top
+
+jobs            nach CTRL+Z jobs anzeigen
+
+nohup           immun gegen SIGHUP => läuft nach schliessen der Shell weiter
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.6  Prozess-Ausführungsprioritäten
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+nice            Prio bei Start (-20 bis +19)
+
+nice-Wert von 12 festlegen:
+ :~$ nice -n 12 nano
+ :~$ nice -12 nano
+nice-Wert von -12 festlegen:
+ :~$ nice -n -12 nano
+ :~$ nice --12 nano
+
+renice          Prio während laufendem Betrieb ändern
+<PID> neue Prio von -10 zuweisen (Achtung, - ist nicht Optionseinleitungssymbol)
+ :~$ renice -10 <PID>
+
+nice-Wert kann mit top geändert werden -> Taste "R"
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+103.7  Regexes
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Metazeichen
+^       Zeilenanfang
+$       Zeilenende
+\<      Wortanfang
+\>      Wortende
+\       nächstes Zeichen nicht zu interpretieren
+[]      [a-d] Zeichen a-d
+[^x]    nicht das Zeichen x
+
+Wildcards
+*       ein oder mehr
+?       null oder eine Wiederholung des vorherigen Zeichens
++       mindestens eine Wiederholung des vorherigen Zeichens
+.       ein Zeichen
+
+
+grep -v     invertiert
+grep -n     Zeilennumern dem Ergebniss hinzufügen
+grep -c     count Anzahl Übereinstimmungen mit dem Suchmuster
+grep -i     ignore case
+
+Confdatei ohne Kommentare (mit # beginnend) ausgeben
+ :~$ grep -v [#] /etc/configfile
+ :~$ grep [^#] /etc/configfile
+Leerzeilen greppen
+ :~$ grep ^$
+alles mit 3,4 oder 5 1er
+ :~$ grep '1\{3,5\}' myfile.txt
+drei Ziffern aufeinanderfolgend
+ :~$ grep '1\{3,5\}' myfile.txt
+
+
+egrep = grep -E         erweiterte metazeichen
+fgrep = grep -F         metazeichen nicht interpretieren
+
+sed -i      inplace ersetzen, an gleicher Ort und stelle
+sed -g      global
+

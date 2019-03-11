@@ -1,0 +1,129 @@
+Topic 102 - Linux-Installation und Paketverwaltung           dhw,  31. Jan. 2015
+--------------------------------------------------------------------------------
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+102.1  Festplattenaufteilung
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+dump -> ganze Partitionen sichern: aus diesem Grund kann ein separates /home-
+Laufwerk Sinn machen
+
+erste Partition /boot, ca. 50MB
+
+swap:
+ - erst wenn RAM voll
+ - prinzipell nicht nötig wenn RAM garantiert
+ - 2x RAM = SWAP als Faustregel
+
+LVM = Logical Volume Manager
+    - Bspw. mehrer Festplatten als eine Logische Festplatte
+Komponenten LVM
+    - Physikalische Volumen (pv)
+        - vergleichbar mit echten Partitionen
+        - Dateisystemtyp ist 8E
+    - Volumen-Gruppen (vg)
+        - Zusammenschluss von meheren pv
+    - Logische Volumen (lv)
+        - innerhalb Volumen-Gruppen wie Partitionen
+Paket lvm2
+/sbin/lvm2 -> diverse links darauf
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+102.2  Bootmanager
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Grub Legacy und Grub2, LILO nicht mehr prüfungsrelevant
+
+Grub-Legacy
+-----------
+ - zwei/dreistufig
+ - Stage 1 im MBR der Festplatte
+    - /boot/grub/stage1
+ - Stage 1.5 mit verwendetem dateisystem
+    - bspw reiserfs_stage1_5 im /boot/grub
+ - Stage 2
+    - /boot/grub/stage2
+
+Grub prompt
+ grub>
+ - manuelles starten bei Fehlkonfiguration, bsp:
+    grub> root (hd0,0)
+    grub> kernel /boot/vmlinuz-2.6.23.1-10.fc7 root=/dev/sda2
+    grub> initrd /boot/initrd-2.6.23.1-10.fc7.img
+    grub> boot
+
+Grub2
+-----
+Grub2 wichtigste Datei /boot/grub/grub.cfg
+
+Konfigdateien
+ - unter /etc
+ - /boot/grub
+
+/grub-mkconfig erstellt /boot/grub/grub.cfg
+/etc/default/grub
+update-grub2 wenn neuen Kernel manuell hinzugefügt wurde
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+102.3  Shared Librarys
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+shared object = so -> entspricht dll @ win
+
+ldd -> befehl um herauszufinden von welchen libraries abhängig
+ldconfig -> neue Bibliothek in System einfügen
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+102.4  Debian Paketverwaltung
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+/etc/dpkg/dpkg.cfg
+
+install/deinstall scripts unter
+/var/lib/dpkg/info
+    - *.list-Datei für manuellese entfernen
+
+/var/lib/dpkg/status -> info über bestehende packages
+/var/lib/dpkg/available 
+
+dpkg -i     install
+     -r     remove
+     -P     Purge
+     -s     status
+     -C     teilwweise installierte Pakete anzeigen
+     -L     listet alle Files eines Paketes auf
+
+dpkg-reconfigure -> neukonfig Paket
+     -a  -> alle Pakete
+
+apt-cache stats 
+
+alien -> paket aus anderer dist für deb bereitstellen
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+102.5 RPM
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+- keine Paketauflösung
+- yum für install   
+
+rpmrc  -> conf-Datei
+ - /etc/rpmrc
+ - /usr/lib/rpm/rpmrc
+
+rpm -r  = requires (!!! nicht remove)
+rpm -e  = erease
+ --force
+ --nodeps -> abhängigkeiten ignore
+rpm -q  = DB abfragen
+rpm -qa = query all -> all installierten pakete
+
+alle Query-Optionen beginnen mit -q*
+ -qi = query info
+
+rpm2cpio => rpm-Paket in cpio-Paket umwandeln
+    - um einzelene Datei zu extrahieren.
+
+yum
+yumdownloader

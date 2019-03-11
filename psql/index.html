@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta name="author" content="Daniel Hauswirth" />
+<meta charset="UTF-8" />
+<meta name="description" content="cheatsheet psql" />
+<meta name="dcterms.subject" content="Cheatsheet PSQL" />
+<meta name="robots" content="all,follow" /> 
+
+<link rel="stylesheet" href="../style.css" type="text/css" title="Standard"> 
+<!--
+        <link rel="alternate stylesheet" href="style2.css" type="text/css" title="Ugly Layout"> 
+        <link rel="alternate stylesheet" href="style3.css" type="text/css" title="SW Layout"> 
+        <script type="text/javascript" src="/switch.js"></script>
+        -->
+
+
+<title>Cheatsheet PSQL</title>
+</head>
+<body>
+<div id="kopf">
+    &nbsp;
+</div>
+<div id="menue">
+    <a href="../">chloesoe.ch</a>
+    <ul>
+        <li>PSQL cheatsheet
+        <div>
+            <ul>
+                <li><a href="links.html">PSQL Links</a></li>
+            </ul>
+        </div>
+        </li>
+    </ul>
+</div>
+
+<div id="mitte">
+    <div id="inhalt">
+        <h1>PostgreSQL notes; to use or not to use</h1>
+        <h2>Conf-Files</h2>
+        <p>
+        most important conf files
+        </p>
+        <ul>
+            <li>postgresql.conf</li>
+            <li>pg_hba.conf</li>
+        </ul>
+        <p>
+        they are located on different folders, according to the OS (this are also the standard storage location for postgres)
+        </p>
+        <ul>
+            <li><strong>Debian</strong>: /etc/postgresql/8.4/main</li>
+            <li><strong>Suse/Redhat</strong>: /var/lib/pgsql/data</li>
+        </ul>
+
+        <h2> Dumps and Restore</h2>
+        <p>Restore a dump<br />
+        <code>psql -U username dbname &lt; mydumpfile.sql</code>
+        </p>
+        <p>create a dump<br />
+        <code>pg_dump -U username dbname &gt; mydumpfile.sql</code>
+        </p>
+
+
+        <h2> Alter commands</h2>
+        <p>Rename Database:<br />
+        <code>ALTER DATABASE screenfood RENAME TO screenfood_old;</code>
+        </p>
+        <p>Change password<br />
+        <code>ALTER USER Postgres WITH PASSWORD '&lt;newpassword&gt;';</code>
+        </p>
+        <h2> Size commands</h2>
+        <p>get the size of a database<br />
+        <code>select pg_size_pretty(pg_database_size('dbname'));</code>
+        </p>
+        <p>get the size of all databases sorted<br />
+        source: <a href="https://wiki.postgresql.org/wiki/Disk_Usage">https://wiki.postgresql.org/wiki/Disk_Usage</a><br />
+        <code> SELECT <br />
+            d.datname AS Name,  pg_catalog.pg_get_userbyid(d.datdba) AS Owner,<br />
+            CASE WHEN pg_catalog.has_database_privilege(d.datname, 'CONNECT')<br />
+            THEN pg_catalog.pg_size_pretty(pg_catalog.pg_database_size(d.datname))<br />
+            ELSE 'No Access'<br />
+            END AS Size<br />
+            FROM pg_catalog.pg_database d<br />
+            ORDER BY<br />
+            CASE WHEN pg_catalog.has_database_privilege(d.datname, 'CONNECT')<br />
+            THEN pg_catalog.pg_database_size(d.datname)<br />
+            ELSE NULL<br />
+            END DESC -- nulls first<br />
+            LIMIT 20<br />
+        </code>
+        </p>
+
+
+        <p>get the size of a table<br />
+        <code>select pg_size_pretty(pg_relation_size('tablename'));</code>
+        </p>
+        <p>get the size of all table sorted<br />
+        source: <a href="https://wiki-bsse.ethz.ch/display/ITDOC/Check+size+of+tables+and+objects+in+PostgreSQL+database"> https://wiki-bsse.ethz.ch/</a> <br />
+        <code> SELECT <br />
+            relname as "Table",<br />
+            pg_size_pretty(pg_total_relation_size(relid)) As "Size",<br />
+            pg_size_pretty(pg_total_relation_size(relid) - pg_relation_size(relid)) as "External Size"<br />
+            FROM pg_catalog.pg_statio_user_tables ORDER BY pg_total_relation_size(relid) DESC;<br /> </code>
+        </p>
+
+        <p>get size of index (where table name like 't_playback_%')<br />
+        source: <a href="https://wiki.postgresql.org/wiki/Index_Maintenance#Index_size.2Fusage_statistics">https://wiki.postgresql.org/wiki/Index_Maintenance</a> <br />
+        <code>
+        SELECT
+        t.tablename, <br />
+        indexname, <br />
+        c.reltuples AS num_rows, <br />
+        pg_size_pretty(pg_relation_size(quote_ident(t.tablename)::text)) AS table_size, <br />
+        pg_size_pretty(pg_relation_size(quote_ident(indexrelname)::text)) AS index_size, <br />
+        CASE WHEN indisunique THEN 'Y' <br />
+        ELSE 'N' <br />
+        END AS UNIQUE, <br />
+        idx_scan AS number_of_scans, <br />
+        idx_tup_read AS tuples_read, <br />
+        idx_tup_fetch AS tuples_fetched <br />
+        FROM pg_tables t <br />
+        LEFT OUTER JOIN pg_class c ON t.tablename=c.relname <br />
+        LEFT OUTER JOIN <br />
+        ( SELECT c.relname AS ctablename, ipg.relname AS indexname, x.indnatts AS number_of_columns, idx_scan, idx_tup_read, idx_tup_fetch, indexrelname, indisunique FROM pg_index x <br />
+        JOIN pg_class c ON c.oid = x.indrelid <br />
+        JOIN pg_class ipg ON ipg.oid = x.indexrelid <br />
+        JOIN pg_stat_all_indexes psai ON x.indexrelid = psai.indexrelid ) <br />
+        AS foo <br />
+        ON t.tablename = foo.ctablename <br />
+        WHERE t.schemaname='public' and relname like 't_playback_%' <br />
+        ORDER BY 1,2;
+        </code>
+        </p>
+
+        <h2>show tables</h2>
+        <p>basically all tables can be showd by<br /><code>&#92;d</code><br />if you want to select only some table names, this will help you and does nearly the same as >&#92;d<br />
+        <code> SELECT table_schema,table_name,table_catalog,table_type FROM information_schema.tables WHERE table_schema = 'public';</code>
+        </p>
+
+        <h2>Monitoring</h2>
+        show the active psql processes:
+        <ul>
+            <li> psql 9.x <br />
+            <code>SELECT datname,usename,pid,client_addr,waiting,state,query_start,query FROM pg_stat_activity ORDER BY query_start;</code>
+            </li>
+            <li> psql 8.x <br />
+            <code>SELECT datname,usename,procpid,client_addr,waiting,query_start,current_query FROM pg_stat_activity ORDER BY query_start;</code>
+            </li>
+        </ul>
+        <p> Watching queries from ps If you want, you can also make the queries being run show up in process titles, by setting the following:<br />
+        <code>update_process_title = on</code></p>
+        <h2>Configuration</h2>
+        <h3>postgresql.conf</h3>
+        <p><code>listen_addresses = '*' </code></p>
+        <h3>pg_hba.conf</h3>
+        <p>An example, how it could work. With <em>trust</em> a logged in user can connect to the database with any user without password.<br />
+        <code>
+            # "local" is for Unix domain socket connections only<br />
+            local&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;postgres&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;peer<br />
+            local&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;trust<br />
+            # IPv4 local connections:<br />
+            host&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;127.0.0.1/32&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;md5<br />
+            host&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;192.168.190.0/24&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;md5<br />
+            # IPv6 local connections:<br />
+            host&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::1/128&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;md5<br />
+        </code>
+        </p>
+
+        <h3> Runtime settings</h3>
+
+        <p>
+        show configured settings:<br />
+        <code>SELECT name, setting, reset_val, source from pg_settings;</code>
+        </p>
+        <p>
+        show non default settings:<br />
+        <code>SELECT Name, source, setting, unit from pg_settings where source != 'default' AND source != 'override' ORDER by 2,1;</code>
+        </p>
+        <p>
+        change settings during runtime
+        <code>SET work_mem='16MB';</code>
+        </p>
+        <h2>Logging</h2>
+        <p>
+        Log all modifications:<br />
+        posgresql.conf -&gt; set log_statement (mod)<br />
+        -&gt;  <a href="http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html">http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html</a> <br />
+        </p>
+
+        <h2>Random useful commands</h2>
+        <p>
+        select only uniqe values<br />
+        <code>SELECT DISTINCT myColumd FROM myTable;</code>
+        </p>
+        <p>
+        set timing for summarize query time<br />
+        <code># \timing</code>
+        </p>
+        <p>Create an index<br />
+        <code>CREATE INDEX t_playback_log_event_idx ON t_playback_log_event(c_playback_log_id,c_date);</code>
+        </p>
+        <p>Copy a table in a CSV file<br />
+        <code>psql -U screenfood -c "copy t_client to '/tmp/t_client.csv' delimiter ';' CSV HEADER;"</code>
+        </p>
+
+    </div>
+</div>
+<div id="fuss">
+    @chloesoe, 30th September 2014 <a href="info@chloesoe.ch">Kontakt</a>
+
+</div>
+
+</body>
+</html>
+
